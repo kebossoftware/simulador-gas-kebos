@@ -6,7 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 
 const { width } = Dimensions.get('window');
-const imageWidth = width / 2;
+const height = 285;
+const imageWidth = 815;
+const imageHeight = 285;
 const STORAGE_KEY = '@downloaded_images';
 
 export default function Carousel() {
@@ -22,23 +24,24 @@ export default function Carousel() {
 
       try {
         const response = await axios.get("https://r5u2xdj485.execute-api.us-east-1.amazonaws.com/api-get-images/get-images");
-        const urls: string[] = JSON.parse(response.data.body).slice(1);
+        const urls: string[] = JSON.parse(response.data.body).slice(1); 
 
         const displayUris: string[] = [];
         const updatedCache: Record<string, string> = { ...cached };
 
         await Promise.all(
           urls.map(async (url) => {
+            if (typeof url !== 'string') return;
+
             const filename = (url.split('/').pop() || '').split('?')[0];
             const localPath = `${FileSystem.documentDirectory}${filename}`;
-
             const fileInfo = await FileSystem.getInfoAsync(localPath);
 
             if (fileInfo.exists) {
-              displayUris.push(localPath); // já existe localmente
+              displayUris.push(localPath);
               updatedCache[url] = localPath;
             } else {
-              displayUris.push(url); // ainda não baixou, mas mostra online
+              displayUris.push(url);
               if (isConnected) {
                 try {
                   const downloadResumable = FileSystem.createDownloadResumable(url, localPath);
@@ -66,11 +69,10 @@ export default function Carousel() {
     loadImages();
   }, []);
 
-  // Carrossel automático
   const goNext = () => {
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
-    scrollRef.current?.scrollTo({ x: nextIndex * imageWidth, animated: true });
+scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
 
     if (nextIndex === images.length) {
       setTimeout(() => {
@@ -85,26 +87,43 @@ export default function Carousel() {
     return () => clearInterval(interval);
   }, [currentIndex, images.length]);
 
-  const extendedImages = [...images, ...images];
+  const extendedImages = images.length <= 1 ? [...images] : [...images, ...images];
 
   return (
-    <View>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
         horizontal
         ref={scrollRef}
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
         style={{ width, marginTop: 30 }}
-        contentContainerStyle={{ width: extendedImages.length * imageWidth }}
+        contentContainerStyle={{
+          width: extendedImages.length * imageWidth,
+          height: height,
+        }}
       >
-        {extendedImages.map((uri, idx) => (
-          <Image
-            key={idx}
-            source={{ uri }}
-            style={{ width: imageWidth, height: 200, transform: [{ scale: 0.7 }] }}
-            resizeMode="cover"
-          />
-        ))}
+        {extendedImages.map((uri: string, idx: number) => (
+  <View
+    key={idx}
+    style={{
+      width, // largura da tela
+      height: imageHeight,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <Image
+      source={{ uri }}
+      style={{
+        width: imageWidth,
+        height: imageHeight,
+        transform: [{ scale: 0.3 }],
+      }}
+      resizeMode="cover"
+    />
+  </View>
+))}
+
       </ScrollView>
     </View>
   );

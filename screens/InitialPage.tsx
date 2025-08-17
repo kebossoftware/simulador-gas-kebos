@@ -5,6 +5,8 @@ import { TitleAndInputText } from 'components/TitleAndInputText';
 import { useState } from 'react';
 import Carousel from 'components/Carousel';
 import { Footer } from 'components/Footer';
+import IconDanger from '../assets/icons/danger-dead-svgrepo-com.svg';
+import IconLife from '../assets/icons/heart-svgrepo-com.svg';
 
 interface OutputRange {
   value: {
@@ -140,19 +142,19 @@ export default function InitialPage() {
       value: null,
       outputs: [
         {
-          value: { min: 25 },
+          value: { min: 20 },
           risc: "red",
           message:
             "Alarme Alto - Primeiramente, podem acontecer irritações nos olhos, no nariz ou na garganta. Os problemas atingem ainda o sistema respiratório, causando perdas de memória, dores de cabeça e até comprometimento da função motora, pelo fato de o gás atingir o sistema nervoso central provocando a morte"
         },
         {
-          value: { min: 20, max: 25 },
+          value: { min: 10, max: 20 },
           risc: "red",
           message:
             "Alarme Baixo - Primeiramente, podem acontecer irritações nos olhos, no nariz ou na garganta. Os problemas atingem ainda o sistema respiratório, causando perdas de memória, dores de cabeça e até comprometimento da função motora, pelo fato de o gás atingir o sistema nervoso central provocando a morte"
         },
         {
-          value: { min: 0.1, max: 20 },
+          value: { min: 0.1, max: 10 },
           risc: "red",
           message:
             "Primeiramente, podem acontecer irritações nos olhos, no nariz ou na garganta. Os problemas atingem ainda o sistema respiratório, causando perdas de memória, dores de cabeça e até comprometimento da função motora, pelo fato de o gás atingir o sistema nervoso central provocando a morte"
@@ -163,7 +165,91 @@ export default function InitialPage() {
           message: "Normal"
         },
       ]
-    }
+    },
+    {
+      gas: 'NH3',
+      label: '• Amônia (NH3 - ppm)',
+      value: null,
+      outputs: [
+        {
+          value: { min: 20 },
+          risc: "red",
+          message:
+            "A intoxicação NH3 AMÔNIA pode causar pelas diferentes vias de exposição: Toxicidade aguda: A inalação pode causar queimaduras na mucosa nasal, faringe e laringe, tosse, dor no peito, espasmo brônquico com dificuldade respiratória e edema pulmonar. \n\n Efeitos locais: O hidróxido de amônio quando em contato com a pele pode produzir necrose dos tecidos e profundas queimaduras. Enquanto prolongado ou repetido pode causar dermatite. Em contato com os olhos causa lacrimejamento, conjuntivite, irritação e ulceração da córnea, resultando em cegueira temporária ou permanente. Toxicidade crônica: Pode ocorrer bronquite crônica na exposição inalatória e ao , atingir o sistema nervoso central levando a morte. "
+        },
+        {
+          value: { min: 10, max: 20 },
+          risc: "green",
+          message:
+            "A intoxicação NH3 AMÔNIA pode causar irritação nos olhos, nariz e garganta em algumas pessoas, e pode levar a dificuldade respiratória e “sensação de intoxicação”."
+        },
+        {
+          value: { min: 0.1, max: 10 },
+          risc: "green",
+          message:
+            "A intoxicação NH3 AMÔNIA pode causar irritação leve a moderada nos olhos, nariz e garganta, com sintomas como sensação de queimação, tosse e desconforto e “sensação de intoxicação”."
+        },
+        {
+          value: { max: 0 },
+          risc: "green",
+          message: "Normal"
+        },
+      ]
+    },
+    {
+      gas: 'SO2',
+      label: '• Dióxido de Enxofre (SO2 - ppm)',
+      value: null,
+      outputs: [
+        {
+          value: { min: 2 },
+          risc: "red",
+          message:
+            "\n• Inalação: Causa irritação grave do nariz e da garganta, endema pulmonar. Sintomas podem incluir tosse, falta de ar, dificuldade para respirar e aperto no peito, podem facilmente irritar as vias aéreas como falta de ar, aperto no peito e chiado no peito. \n\n•	Contato com a pele: CORROSIVO. O gás irrita ou queima a pele. Cicatrizes permanentes podem ocorrer a pele pode ficar branca ou amarelada como cera. Em casos graves, podem ocorrer bolhas, morte do tecido e infecção.\n\n•	Contato com os olhos: CORROSIVO. O gás irrita ou queima os olhos. Danos permanentes, incluindo cegueira, podem ocorrer. O contato direto com o gás liquefeito pode congelar os olhos. Danos oculares permanentes ou cegueira podem ocorrer.\n\n•	Efeitos da exposição prolongada (crônica): Pode causar danos ao sistema respiratório. Pode irritar e inflamar as vias aéreas inalatória e ao , atingir o sistema nervoso central levando a morte."
+        },
+        {
+          value: { max: 2 },
+          risc: "green",
+          message: "Normal"
+        },
+      ]
+    },
+    {
+      gas: 'CO2',
+      label: '• Dióxido de Carbono (CO2 - ppm)',
+      value: null,
+      outputs: [
+        {
+          value: { min: 5000 },
+          risc: "red",
+          message:
+            "\n• Inalação: Altas concentrações podem afetar a função respiratória e causar excitação seguida de depressão do sistema nervoso central, podendo deslocar o oxigênio do ar. Se houver menos oxigênio disponível para respirar, podem ocorrer sintomas como dor de cabeça, respiração rápida, frequência cardíaca acelerada, falta de jeito, distúrbios emocionais e fadiga. À medida que menos oxigênio se torna disponível, podem ocorrer náuseas e vômitos, colapso, convulsões, coma e morte. "
+        },
+        {
+          value: { max: 5000 },
+          risc: "green",
+          message: "Normal"
+        },
+      ]
+    },
+    {
+      gas: 'VOC',
+      label: '• Compostos Orgânicos Voláteis (VOC - ppm)',
+      value: null,
+      outputs: [
+        {
+          value: { min: 30 },
+          risc: "red",
+          message:
+            "A exposição a VOCs, especialmente em altas concentrações como 30 ppm (partes por milhão), pode apresentar riscos à saúde, incluindo irritação nos olhos, nariz e garganta, dores de cabeça, tonturas, náuseas e, em casos mais graves, danos aos órgãos e ao , atingir o sistema nervoso central pode levar a morte"
+        },
+        {
+          value: { max: 30 },
+          risc: "green",
+          message: "Normal"
+        },
+      ]
+    },
   ]);
 
 
@@ -191,7 +277,7 @@ export default function InitialPage() {
         const min = range.value.min ?? Number.NEGATIVE_INFINITY;
         const max = range.value.max ?? Number.POSITIVE_INFINITY;
 
-        if (val > min && val <= max) {
+        if (val >= min && val <= max) {
           return { message: `${gas.label} → ${range.message}`, risc: range.risc };
         }
       }
@@ -222,14 +308,26 @@ export default function InitialPage() {
           <Text style={styles.btnText}>SIMULAR</Text>
         </TouchableOpacity>
 
-        {showResult && results.map((res, i) => (
-          <View
-            key={i}
-            style={[styles.resultContainer, { borderLeftColor: res.risc }]}
-          >
-            <Text style={styles.resultText}>{res.message}</Text>
-          </View>
-        ))}
+        {showResult && results
+          .filter(res => !res.message.includes("Valor não informado"))
+          .map((res, i) => (
+            <View
+              key={i}
+              style={[styles.resultContainer, { borderLeftColor: res.risc, flexDirection: 'row', alignItems: 'center' }]}
+            >
+              {res.risc === 'red' && (
+                <IconDanger width={30} height={30} fill={res.risc} />
+              )}
+
+              {res.risc === 'green' && (
+                <IconLife width={30} height={30} stroke={res.risc} />
+              )}
+
+
+              <Text style={styles.resultText}>{res.message}</Text>
+            </View>
+          ))}
+
 
 
         <Carousel />
