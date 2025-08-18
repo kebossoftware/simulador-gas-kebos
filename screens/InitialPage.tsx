@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors } from '../global/colors';
 import { TitleAndInputText } from 'components/TitleAndInputText';
