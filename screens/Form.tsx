@@ -30,6 +30,7 @@ export default function FormScreen() {
   const [showTerms, setShowTerms] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [firstAccess, setFirstAccess] = useState(true);
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -41,26 +42,25 @@ export default function FormScreen() {
 
         const storedForm = await AsyncStorage.getItem("formCompleted");
         const storedTerms = await AsyncStorage.getItem("termsAccepted");
+        const storedFirstAccess = await AsyncStorage.getItem("firstAccess");
 
         const hasForm = storedForm === "true";
         const hasTerms = storedTerms === "true";
 
         setFormCompleted(hasForm);
         setTermsAccepted(hasTerms);
+        setFirstAccess(storedFirstAccess !== "false"); // se nunca gravou, é o primeiro acesso
 
-        // Se já preencheu formulário mas não aceitou termos, abre o modal
         if (hasForm && !hasTerms) {
           setShowTerms(true);
         }
 
-        // Se preencheu formulário e aceitou termos, entra direto no APP
         if (hasForm && hasTerms) {
           navigation.reset({
             index: 0,
             routes: [{ name: "APP" }],
           });
         }
-
       } catch (e) {
         console.log("Erro ao inicializar dados:", e);
       }
@@ -68,7 +68,6 @@ export default function FormScreen() {
 
     initialize();
   }, [navigation]);
-
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -118,6 +117,7 @@ export default function FormScreen() {
 
               if (response.status === 200) {
                 await AsyncStorage.setItem("formCompleted", "true");
+                await AsyncStorage.setItem("firstAccess", "false");
                 setFormCompleted(true);
                 setShowTerms(true);
               } else {
@@ -135,6 +135,12 @@ export default function FormScreen() {
     );
   };
 
+  const handleSkip = async () => {
+    await AsyncStorage.setItem("firstAccess", "false");
+    setFirstAccess(false);
+    Alert.alert("Lembre-se", "Você poderá preencher o formulário a qualquer momento ao abrir o app novamente.");
+  };
+
   const handleAcceptTerms = async () => {
     await AsyncStorage.setItem("termsAccepted", "true");
     setShowTerms(false);
@@ -143,7 +149,6 @@ export default function FormScreen() {
       routes: [{ name: "APP" }],
     });
   };
-
 
   if (!connected) {
     return (
@@ -160,6 +165,12 @@ export default function FormScreen() {
           <Text style={styles.title}>
             Preencha para receber informações exclusivas do nosso software
           </Text>
+
+          {/* Aviso sobre armazenamento local */}
+          <Text style={styles.notice}>
+            🔒 Seus dados serão salvos com segurança neste dispositivo para que você não precise preencher novamente.
+          </Text>
+
           <TextInput
             style={styles.input}
             placeholder="Nome"
@@ -183,12 +194,21 @@ export default function FormScreen() {
           />
 
           <TouchableOpacity style={styles.button} onPress={handleSendEmail} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Enviar</Text>
-            )}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Enviar</Text>}
           </TouchableOpacity>
+
+          {/* Botão Pular só no primeiro acesso */}
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "#999" }]}
+              onPress={() => {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "APP" }],
+                });
+              }}
+            >
+              <Text style={styles.buttonText}>Pular</Text>
+            </TouchableOpacity>
         </>
       )}
 
@@ -222,6 +242,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: { fontSize: 22, marginBottom: 20, fontWeight: "bold", textAlign: "center", color: "#000" },
+  notice: { fontSize: 14, color: "#333", marginBottom: 15, textAlign: "center" },
   input: {
     width: "100%",
     borderWidth: 1,
@@ -229,7 +250,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 15,
-    color: "#000"
+    color: "#000",
   },
   button: {
     backgroundColor: colors.greenDark,
