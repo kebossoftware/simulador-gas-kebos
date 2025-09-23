@@ -4,7 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { colors } from 'global/colors';
-const kebosLogo = require('../assets/kebosLogo.png');
+const kebosLogo = require("../cleaned-assets/kebosLogo.png");
+const equipamentos = require('../assets/equipamentos.png');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'APP'>;
 
@@ -19,6 +20,8 @@ export default function AppScreen() {
             </View>
 
             <Text style={styles.title}>Simulador de Detecção de Gás</Text>
+
+            <Image style={styles.image} source={equipamentos} />
 
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('INICIAR')}>
                 <Text style={styles.btnText}>INICIAR</Text>
@@ -45,6 +48,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         top: -150,
     },
+    image: {
+        transform: [{ scale: 0.5 }],
+        position: 'absolute',
+        bottom: 50,
+        left: -178,
+    },
     logo: {
         width: 300,
         height: 200,
@@ -56,6 +65,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: 'center',
         color: colors.white,
+        position: 'absolute',
+        top: 350,
+        zIndex: 1,
     },
     button: {
         marginTop: 20,

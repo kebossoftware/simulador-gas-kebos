@@ -24,7 +24,7 @@ export default function Carousel() {
 
       try {
         const response = await axios.get("https://r5u2xdj485.execute-api.us-east-1.amazonaws.com/api-get-images/get-images");
-        const urls: string[] = JSON.parse(response.data.body).slice(1); 
+        const urls: string[] = JSON.parse(response.data.body).slice(1);
 
         const displayUris: string[] = [];
         const updatedCache: Record<string, string> = { ...cached };
@@ -72,7 +72,7 @@ export default function Carousel() {
   const goNext = () => {
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
-scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
+    scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
 
     if (nextIndex === images.length) {
       setTimeout(() => {
@@ -103,26 +103,26 @@ scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
         }}
       >
         {extendedImages.map((uri: string, idx: number) => (
-  <View
-    key={idx}
-    style={{
-      width, // largura da tela
-      height: imageHeight,
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    <Image
-      source={{ uri }}
-      style={{
-        width: imageWidth,
-        height: imageHeight,
-        transform: [{ scale: 0.3 }],
-      }}
-      resizeMode="cover"
-    />
-  </View>
-))}
+          <View
+            key={idx}
+            style={{
+              width, // largura da tela
+              height: imageHeight,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Image
+              source={{ uri }}
+              style={{
+                width: imageWidth,
+                height: imageHeight,
+                transform: [{ scale: 0.3 }],
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        ))}
 
       </ScrollView>
     </View>
