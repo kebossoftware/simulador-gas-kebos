@@ -35,31 +35,45 @@ export default function FormScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useEffect(() => {
+    let isMounted = true;
+
     const initialize = async () => {
       try {
-        const net = await NetInfo.fetch();
-        setConnected(net.isConnected ?? false);
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        const storedForm = await AsyncStorage.getItem("formCompleted");
-        const storedTerms = await AsyncStorage.getItem("termsAccepted");
-        const storedFirstAccess = await AsyncStorage.getItem("firstAccess");
+        const [net, storedForm, storedTerms, storedFirstAccess] = await Promise.all([
+          NetInfo.fetch(),
+          AsyncStorage.getItem("formCompleted"),
+          AsyncStorage.getItem("termsAccepted"),
+          AsyncStorage.getItem("firstAccess"),
+        ]);
+
+        if (!isMounted) return;
+
+        setConnected(net.isConnected ?? false);
 
         const hasForm = storedForm === "true";
         const hasTerms = storedTerms === "true";
+        const firstAccessFlag = storedFirstAccess === null ? true : storedFirstAccess !== "false";
 
         setFormCompleted(hasForm);
         setTermsAccepted(hasTerms);
-        setFirstAccess(storedFirstAccess !== "false"); // se nunca gravou, é o primeiro acesso
+        setFirstAccess(firstAccessFlag);
 
         if (hasForm && !hasTerms) {
           setShowTerms(true);
+          return;
         }
 
         if (hasForm && hasTerms) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "APP" }],
-          });
+          setTimeout(() => {
+            if (navigation && navigation.reset) {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "APP" }],
+              });
+            }
+          }, 300);
         }
       } catch (e) {
         console.log("Erro ao inicializar dados:", e);
@@ -67,6 +81,10 @@ export default function FormScreen() {
     };
 
     initialize();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigation]);
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -81,6 +99,7 @@ export default function FormScreen() {
   };
 
   const handleSendEmail = async () => {
+    // 🔹 Validações básicas
     if (!form.name || !form.phone || !form.email) {
       Alert.alert("Preencha todos os campos!");
       return;
@@ -94,7 +113,7 @@ export default function FormScreen() {
       return;
     }
     if (!connected) {
-      Alert.alert("Sem conexão, não é possível enviar os dados.");
+      Alert.alert("Sem conexão", "Não é possível enviar os dados no momento.");
       return;
     }
 
@@ -109,23 +128,41 @@ export default function FormScreen() {
             try {
               setLoading(true);
 
+              const source = axios.CancelToken.source();
+              const timeout = setTimeout(() => {
+                source.cancel("Tempo de requisição excedido");
+              }, 10000);
+
               const response = await axios.post(
                 "https://r5u2xdj485.execute-api.us-east-1.amazonaws.com/api-18-08-02-32/send-email",
                 form,
-                { headers: { "Content-Type": "application/json" } }
+                {
+                  headers: { "Content-Type": "application/json" },
+                  cancelToken: source.token,
+                }
               );
 
+              clearTimeout(timeout);
+
               if (response.status === 200) {
-                await AsyncStorage.setItem("formCompleted", "true");
-                await AsyncStorage.setItem("firstAccess", "false");
+                await Promise.all([
+                  AsyncStorage.setItem("formCompleted", JSON.stringify(true)),
+                  AsyncStorage.setItem("firstAccess", JSON.stringify(false)),
+                ]);
+
                 setFormCompleted(true);
                 setShowTerms(true);
               } else {
-                Alert.alert("Erro ao enviar os dados.");
+                Alert.alert("Erro", "Não foi possível enviar os dados.");
               }
             } catch (error: any) {
               console.log("Erro ao enviar email:", error.response?.data || error.message);
-              Alert.alert("Erro ao enviar email.");
+
+              if (axios.isCancel(error)) {
+                Alert.alert("Tempo esgotado", "A conexão demorou muito para responder.");
+              } else {
+                Alert.alert("Erro", "Falha ao enviar os dados.");
+              }
             } finally {
               setLoading(false);
             }
@@ -134,6 +171,7 @@ export default function FormScreen() {
       ]
     );
   };
+
 
   const handleSkip = async () => {
     await AsyncStorage.setItem("firstAccess", "false");
@@ -198,17 +236,17 @@ export default function FormScreen() {
           </TouchableOpacity>
 
           {/* Botão Pular só no primeiro acesso */}
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: "#999" }]}
-              onPress={() => {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "APP" }],
-                });
-              }}
-            >
-              <Text style={styles.buttonText}>Pular</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#999" }]}
+            onPress={() => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "APP" }],
+              });
+            }}
+          >
+            <Text style={styles.buttonText}>Pular</Text>
+          </TouchableOpacity>
         </>
       )}
 
