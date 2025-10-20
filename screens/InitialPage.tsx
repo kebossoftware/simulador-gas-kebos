@@ -386,11 +386,9 @@ export default function InitialPage() {
             </View>
           ))}
 
-
-
-        <Carousel2 />
-
-
+        <View style={{ width: '100%', height: 250, marginTop: 50, marginBottom: 50, marginRight: 35 }}>
+          <Carousel2 />
+        </View>
 
         <Contato />
 

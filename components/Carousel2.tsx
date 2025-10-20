@@ -1,70 +1,133 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, FlatList, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from "react";
+import { View, Dimensions, FlatList, ListRenderItemInfo, Image as RNImage } from "react-native";
+import { Image } from "expo-image";
+import ImageResizer from "react-native-image-resizer";
 
-const detec1 = require("../cleaned-assets/carousel/detec1.png");
-const detec2 = require("../cleaned-assets/carousel/detec2.png");
-const detec3 = require("../cleaned-assets/carousel/detec3.png");
-const detec4 = require("../cleaned-assets/carousel/detec4.png");
-const detec5 = require("../cleaned-assets/carousel/detec5.png");
-const detec6 = require("../cleaned-assets/carousel/detec6.png");
-const detec7 = require("../cleaned-assets/carousel/detec7.png");
-const detec8 = require("../cleaned-assets/carousel/detec8.png");
-const detec9 = require("../cleaned-assets/carousel/detec9.png");
-const detec10 = require("../cleaned-assets/carousel/detec10.png");
-const detec11 = require("../cleaned-assets/carousel/detec11.png");
-const kebosLogo = require("../cleaned-assets/kebosLogo.png");
+// Importando imagens
+const images = [
+  require("../cleaned-assets/kebosLogo.png"),
+  require("../cleaned-assets/carousel/detec1.png"),
+  require("../cleaned-assets/carousel/detec2.png"),
+  require("../cleaned-assets/carousel/detec3.png"),
+  require("../cleaned-assets/carousel/detec4.png"),
+  require("../cleaned-assets/carousel/detec5.png"),
+  require("../cleaned-assets/carousel/detec6.png"),
+  require("../cleaned-assets/carousel/detec7.png"),
+  require("../cleaned-assets/carousel/detec8.png"),
+  require("../cleaned-assets/carousel/detec9.png"),
+  require("../cleaned-assets/carousel/detec10.png"),
+  require("../cleaned-assets/carousel/detec11.png"),
+];
 
-const { width } = Dimensions.get('window');
-const height = 400;
+type FlatListItem = string;
+
+const { width } = Dimensions.get("window");
+const height = 300;
 
 export default function Carousel2() {
-  const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList<FlatListItem>>(null);
+  const [optimizedImages, setOptimizedImages] = useState<FlatListItem[]>([]);
+  const currentIndexRef = useRef(0);
 
-  const images = [
-    kebosLogo, detec1, detec2, detec3, detec4, detec5,
-    detec6, detec7, detec8, detec9, detec10, detec11
-  ];
-
-  // Scroll automático
+  // 🔹 Redimensiona imagens ao montar
   useEffect(() => {
+    async function resizeImages() {
+      const resized: FlatListItem[] = [];
+
+      for (const img of images) {
+        try {
+          // Pega o URI da imagem local
+          const uri = RNImage.resolveAssetSource(img).uri;
+
+          // Redimensiona
+          const result = await ImageResizer.createResizedImage(
+            uri,
+            800, // largura máxima
+            600, // altura máxima
+            "WEBP", // formato leve
+            80 // qualidade
+          );
+
+          resized.push(result.uri);
+        } catch (err) {
+          console.warn("Erro redimensionando imagem:", err);
+          resized.push(RNImage.resolveAssetSource(img).uri);
+        }
+      }
+
+      setOptimizedImages(resized);
+    }
+
+    resizeImages();
+  }, []);
+
+  // 🔹 Carrossel automático
+  useEffect(() => {
+    if (optimizedImages.length === 0) return;
+
     const interval = setInterval(() => {
-      const nextIndex = (currentIndex + 1) % images.length;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setCurrentIndex(nextIndex);
+      currentIndexRef.current =
+        (currentIndexRef.current + 1) % optimizedImages.length;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndexRef.current,
+        animated: true,
+      });
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [optimizedImages]);
 
+  // 🔹 Renderiza cada item
+  const renderItem = ({ item }: ListRenderItemInfo<FlatListItem>) => (
+    <View
+      style={{
+        width,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Image
+        source={{ uri: item }}
+        style={{
+          width: width * 0.8,
+          height,
+          borderRadius: 10,
+        }}
+        contentFit="contain"
+        cachePolicy="memory-disk"
+        transition={300}
+      />
+    </View>
+  );
+
+  // 🔹 Placeholder enquanto carrega
+  if (optimizedImages.length === 0) {
+    return <View style={{ flex: 1, backgroundColor: "#fff" }} />;
+  }
+
+  // 🔹 Carrossel principal
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff', marginTop: 30 }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <FlatList
         ref={flatListRef}
-        data={images}
+        data={optimizedImages}
         horizontal
         pagingEnabled
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
-        style={{ width }}   // 🔥 garante alinhamento certinho
+        removeClippedSubviews
+        initialNumToRender={3}
+        windowSize={5}
+        maxToRenderPerBatch={2}
         keyExtractor={(_, idx) => idx.toString()}
-        renderItem={({ item }) => (
-          <View style={{ width, justifyContent: 'center', alignItems: 'center' }}>
-            <Image
-              source={item}
-              resizeMode="contain"
-              style={{
-                width: width * 0.8,
-                height: height
-              }}
-            />
-          </View>
-        )}
-        getItemLayout={(_, index) => (
-          { length: width, offset: width * index, index }
-        )}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={renderItem}
       />
-
     </View>
   );
 }
